@@ -12,7 +12,7 @@ import (
 
 	"github.com/bxcodec/httpcache/cache"
 	cacheControl "github.com/bxcodec/httpcache/helper/cacheheader"
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 // Headers
