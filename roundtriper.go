@@ -10,9 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"log/slog"
+
 	"github.com/bxcodec/httpcache/cache"
 	cacheControl "github.com/bxcodec/httpcache/helper/cacheheader"
-	"log/slog"
 )
 
 // Headers
@@ -216,7 +217,7 @@ func getCachedResponse(cacheInteractor cache.ICacheInteractor, req *http.Request
 		return
 	}
 
-	if time.Now().After(validationResult.OutExpirationTime) {
+	if time.Now().After(validationResult.OutExpirationTime) && !validationResult.OutExpirationTime.IsZero() {
 		err = fmt.Errorf("cached-item already expired")
 		return
 	}
