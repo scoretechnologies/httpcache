@@ -21,6 +21,7 @@ require (
 	github.com/stretchr/objx v0.1.0 // indirect
 	github.com/yuin/gopher-lua v0.0.0-20191220021717-ab39c6098bdb // indirect
 	go.opentelemetry.io/otel v0.6.0 // indirect
+	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a // indirect
 	google.golang.org/grpc v1.29.1 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 )

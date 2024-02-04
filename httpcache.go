@@ -2,6 +2,7 @@ package httpcache
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/bxcodec/gotcha"
@@ -10,6 +11,7 @@ import (
 	"github.com/bxcodec/httpcache/cache/inmem"
 	rediscache "github.com/bxcodec/httpcache/cache/redis"
 	"github.com/go-redis/redis/v8"
+	"golang.org/x/exp/slog"
 	"golang.org/x/net/context"
 )
 
@@ -17,16 +19,20 @@ import (
 // To use your own cache storage handler, you need to implement the cache.Interactor interface
 // And pass it to httpcache.
 func NewWithCustomStorageCache(client *http.Client, rfcCompliance bool,
-	cacheInteractor cache.ICacheInteractor) (cacheHandler *CacheHandler, err error) {
-	return newClient(client, rfcCompliance, cacheInteractor)
+	cacheInteractor cache.ICacheInteractor, logger *slog.Logger) (cacheHandler *CacheHandler, err error) {
+	return newClient(client, rfcCompliance, cacheInteractor, logger)
 }
 
 func newClient(client *http.Client, rfcCompliance bool,
-	cacheInteractor cache.ICacheInteractor) (cachedHandler *CacheHandler, err error) {
+	cacheInteractor cache.ICacheInteractor, logger *slog.Logger) (cachedHandler *CacheHandler, err error) {
 	if client.Transport == nil {
 		client.Transport = http.DefaultTransport
 	}
-	cachedHandler = NewCacheHandlerRoundtrip(client.Transport, rfcCompliance, cacheInteractor)
+	if logger == nil {
+		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
+	}
+
+	cachedHandler = NewCacheHandlerRoundtrip(client.Transport, rfcCompliance, cacheInteractor, logger)
 	client.Transport = cachedHandler
 	return
 }
@@ -37,7 +43,7 @@ const (
 
 // NewWithInmemoryCache will create a complete cache-support of HTTP client with using inmemory cache.
 // If the duration not set, the cache will use LFU algorithm
-func NewWithInmemoryCache(client *http.Client, rfcCompliance bool, duration ...time.Duration) (cachedHandler *CacheHandler, err error) {
+func NewWithInmemoryCache(client *http.Client, rfcCompliance bool, logger *slog.Logger, duration ...time.Duration) (cachedHandler *CacheHandler, err error) {
 	var expiryTime time.Duration
 	if len(duration) > 0 {
 		expiryTime = duration[0]
@@ -47,12 +53,12 @@ func NewWithInmemoryCache(client *http.Client, rfcCompliance bool, duration ...t
 			SetExpiryTime(expiryTime).SetMaxSizeItem(MaxSizeCacheItem),
 	)
 
-	return newClient(client, rfcCompliance, inmem.NewCache(c))
+	return newClient(client, rfcCompliance, inmem.NewCache(c), logger)
 }
 
 // NewWithRedisCache will create a complete cache-support of HTTP client with using redis cache.
 // If the duration not set, the cache will use LFU algorithm
-func NewWithRedisCache(client *http.Client, rfcCompliance bool, options *rediscache.CacheOptions,
+func NewWithRedisCache(client *http.Client, rfcCompliance bool, options *rediscache.CacheOptions, logger *slog.Logger,
 	duration ...time.Duration) (cachedHandler *CacheHandler, err error) {
 	var ctx = context.Background()
 	var expiryTime time.Duration
@@ -65,5 +71,5 @@ func NewWithRedisCache(client *http.Client, rfcCompliance bool, options *redisca
 		DB:       options.DB,
 	})
 
-	return newClient(client, rfcCompliance, rediscache.NewCache(ctx, c, expiryTime))
+	return newClient(client, rfcCompliance, rediscache.NewCache(ctx, c, expiryTime), logger)
 }
