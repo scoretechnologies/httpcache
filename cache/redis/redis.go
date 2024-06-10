@@ -8,7 +8,7 @@ import (
 
 	"github.com/bxcodec/httpcache/cache"
 	"github.com/datasapiens/cachier/compression"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 )
 
 // CacheOptions for storing data for Redis connections

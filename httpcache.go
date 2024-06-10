@@ -5,14 +5,15 @@ import (
 	"os"
 	"time"
 
+	"log/slog"
+
 	"github.com/bxcodec/gotcha"
 	inmemcache "github.com/bxcodec/gotcha/cache"
 	"github.com/bxcodec/httpcache/cache"
 	"github.com/bxcodec/httpcache/cache/inmem"
 	rediscache "github.com/bxcodec/httpcache/cache/redis"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/net/context"
-	"log/slog"
 )
 
 // NewWithCustomStorageCache will initiate the httpcache with your defined cache storage
